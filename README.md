@@ -2,7 +2,7 @@
 Repositorio base para el SIA v2
 
 
-## Proyecto Instalacion
+## Instalacion
 
 <strong>
 Creado en Laravel 8<br/>
