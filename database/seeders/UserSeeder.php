@@ -19,13 +19,21 @@ class UserSeeder extends Seeder
             'name' => 'Administrador',
             'username' => 'administrador',
             'email' => 'admin@localhost.com.com',
-            'password' => Hash::make('password')
+            'division'=>'DA',
+            'zona'=>'15',
+            'perfil'=>'1',
+            'actividad'=>'7',
+            'password' => Hash::make('password')            
         ]);
 
         $invitado = User::create([
             'name' => 'Invitado',
             'username' => 'invitado',
             'email' => 'invitado@localhost.com.com',
+            'division'=>'DA',
+            'zona'=>'15',
+            'perfil'=>'1',
+            'actividad'=>'2',
             'password' => Hash::make('password')
         ]);
 

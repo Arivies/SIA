@@ -30,6 +30,10 @@ class User extends Authenticatable
         'name',
         'username',
         'email',
+        'division',
+        'zona',
+        'perfil',
+        'actividad',
         'password',
     ];
 

@@ -57,13 +57,19 @@
                     <label for="validationDefault03">Estado</label>
                     <input type="text" class="form-control" id="estado" name="estado" value="{{ $datos['estado'] }}" disabled>
                 </div>
+                <div class="col-md-2 mb-2">
+                  <label for="validationDefault03">Antiguedad</label>
+                  <input type="text" class="form-control" id="fechaAlta" name="fechaAlta" value="{{ $antiguedad }}" disabled>
+              </div>
+              <div class="col-md-2 mb-2">
+                <label for="validationDefault03">Rezago</label>
+                <input type="text" class="form-control" id="rezago" name="rezago" value="{{ $rezago }}" disabled>
+            </div>
             </div>
             <a class="btn btn-secondary btn-sm ml-1" href="{{ route('datos.index') }}">REGRESAR</a>
             <button class="btn btn-secondary btn-sm" type="submit">SIGUIENTE</button>
-
-          </form>
-
-
+{{$fechaAlta->rpu}}
+          </form>  
     </div>
 
 

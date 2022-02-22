@@ -290,6 +290,11 @@ return [
                     'url'  => '/admin/users',
                     'can'  => 'users.index'
                 ],
+                [
+                    'text' => 'Actividades',
+                    'url'  => '/admin/actividades',
+                    'can'  => 'actividades.index'
+                ],
 /*                [
                     'text'    => 'level_one',
                     'url'     => '#',

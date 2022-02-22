@@ -4,9 +4,13 @@ namespace App\Http\Controllers\Cfe;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use  Illuminate\Support\Collection;
+use Illuminate\Support\Collection;
 use App\Models\Datos;
+use App\Models\FechaAltaSicom;
+use App\Models\Carterapa;
+use App\Models\Sicom;
 use nusoap_client;
+
 
 
 class WsController extends Controller
@@ -18,7 +22,7 @@ class WsController extends Controller
     }
 
     public function index()
-    {
+    {       
         return view('datos.clientes.busca_cliente');
     }
 
@@ -27,8 +31,19 @@ class WsController extends Controller
         //$rpu="019860688479";
         $datos=$this->ConsultaUsuario($request->rpu);   
         //print_r($datos);
-       // dd($datos);
-        return view('datos.clientes.muestra_cliente',['datos'=>$datos]);
+        //dd(auth()->user());  
+        $fechaAlta=FechaAltaSicom::where('rpu',$request->rpu)->first();
+        $hoy=date('Y-m-d');
+        $antiguedad=$this->DiffYear($hoy,$fechaAlta->fecha_alta);
+        $rezago=$this->BuscaRezago($request->rpu);        
+        $npr=empty($rezago)?0:$rezago->npr;        
+        $rezago_asi=($npr >= 1 )?"SI":"NO";
+        
+        //$bp=$this->BuenPagador($request->rpu);
+        // print_r($bp);
+        
+
+        return view('datos.clientes.muestra_cliente',['datos'=>$datos,'antiguedad'=>$antiguedad,'rezago'=>$rezago_asi],compact('fechaAlta'));
     }
 
 
@@ -47,7 +62,7 @@ class WsController extends Controller
         //pasando los parámetros a un array
         $param=array('rpu'=>$rpu);
 
-        //llamando al método y pasándole el array con los parámetros
+        //llamando al metodo y pasandole el array con los parametros
         $resultado = $client->call('ConsultaServicio', $param);
         if ($client->fault){ 
             $error = $client->getError();
@@ -60,7 +75,8 @@ class WsController extends Controller
             die();
         }
         $cadena=$resultado['ConsultaServicioResult']; 
-        //print_r($cadena);
+        print_r($cadena);
+        die();
         $cadenaDatos=array();
 
     //return $resultado['ConsultaServicioResult']; 
@@ -84,31 +100,26 @@ class WsController extends Controller
     $cadenaDatos["estatusSRV"]=substr($cadena,20,2);    
     $cadenaDatos["empleado"]=substr($cadena,1880,6);
 
-        /*$obj=new Datos();
-        $obj->estatus=substr($cadena,0,2);
-        $obj->rpu=substr($cadena,2,12);
-        $obj->numCta=substr($cadena,23,16);
-        $obj->tipoFac=substr($cadena,39,1);
-        $obj->nombre=trim(substr($cadena,40,30));
-        $obj->direccion=trim(substr($cadena,70,30));
-        $obj->ciudad=trim(substr($cadena,100,20));
-        $obj->estado=trim(substr($cadena,120,5));
-        $obj->tarifa=substr($cadena,129,2);
-        $obj->fechadesde=substr($cadena,138,8);
-        $obj->fechahasta=substr($cadena,146,8);
-        $obj->fechalimite=substr($cadena,154,8);
-        $obj->numMedidor=trim(substr($cadena,473,7));
-        $obj->colonia=trim(substr($cadena,1252,30)); 
-        $obj->division=substr($cadena,25,2);
-        $obj->zona=substr($cadena,27,2);
-        $obj->agencia=substr($cadena,29,1);
-        $obj->estatusSRV=substr($cadena,20,2);  
-        $obj->empleado=substr($cadena,1880,6);*/
+    return  $cadenaDatos; //json_decode(json_encode($cadenaDatos)); 
+    }
 
-    return  $cadenaDatos; //json_decode(json_encode($cadenaDatos));
-   
-    
 
+    public function DiffYear($fecha1,$fecha2){
+        $f1=date_create($fecha1);
+        $f2=date_create($fecha2);
+        $contador=date_diff($f2,$f1);
+        $formato='%y';       
+        return $contador->format($formato);
+    }
+
+    public function BuscaRezago($rpu){
+        $rezago=Carterapa::where('rpu',$rpu)->first();        
+        return $rezago;
+    }
+
+    public function BuenPagador($rpu){
+        $bp=Sicom::where('c4_RPU',$rpu)->orderBy('C4_AA_ADE','desc');
+        return $bp;
     }
 
 }

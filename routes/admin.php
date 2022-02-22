@@ -6,15 +6,22 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Cfe\WsController;
+use App\Http\Controllers\Admin\ActividadController;
 
+/*RUTA PRINCIPAL AL DASHBOARD */
 Route::get('', [HomeController::class,'index'])->name('dashboard');
 
+/*RUTAS PARA CREAR USUARIOS, ROLES Y PERMISOS*/
 Route::resource('roles', RoleController::class)->names('roles');
 Route::resource('permissions', PermissionController::class)->names('permissions');
 Route::resource('users', UserController::class)->names('users');
 
+/*RUTAS PARA CONSULTAR RPU EN WEB-SERVICE */
 Route::get('datos',[WsController::class,'index'])->name('datos.index');
 Route::post('datos',[WsController::class,'BuscaCliente'])->name('datos.busca');
+
+/*RUTA PARA LAS ACTIVIDADES */
+Route::resource('actividades',ActividadController::class)->names('actividades');
 
 
 
