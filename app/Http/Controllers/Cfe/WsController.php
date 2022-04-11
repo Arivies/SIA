@@ -10,7 +10,8 @@ use App\Models\FechaAltaSicom;
 use App\Models\Carterapa;
 use App\Models\Sicom;
 use nusoap_client;
-
+use App\Mail\EnvioCorreo;
+use Illuminate\Support\Facades\Mail;
 
 
 class WsController extends Controller
@@ -18,30 +19,46 @@ class WsController extends Controller
 
     public function __construct()
     {
-        $this->middleware('can:datos.index')->only(['index']);        
+        $this->middleware('can:datos.index')->only(['index']);
     }
 
     public function index()
-    {       
+    {
         return view('datos.clientes.busca_cliente');
     }
 
     public function BuscaCliente(Request $request){
 
         //$rpu="019860688479";
-        $datos=$this->ConsultaUsuario($request->rpu);   
-        //print_r($datos);
-        //dd(auth()->user());  
+        $datos=$this->ConsultaUsuario($request->rpu);
+
         $fechaAlta=FechaAltaSicom::where('rpu',$request->rpu)->first();
         $hoy=date('Y-m-d');
         $antiguedad=$this->DiffYear($hoy,$fechaAlta->fecha_alta);
-        $rezago=$this->BuscaRezago($request->rpu);        
-        $npr=empty($rezago)?0:$rezago->npr;        
+        $rezago=$this->BuscaRezago($request->rpu);
+        $npr=empty($rezago)?0:$rezago->npr;
         $rezago_asi=($npr >= 1 )?"SI":"NO";
-        
-        //$bp=$this->BuenPagador($request->rpu);
-        // print_r($bp);
-        
+
+       /* $a=([
+            'envia'=>'ari.villavicencioe@fipaterm.mx',
+            'subject' =>'ENVIO DESDE LARAVEL',
+            'recibe' => 'enrique.valencia@fipaterm.mx'
+        ]);
+        $b=([
+            'envia'=>'ari.villavicencioe@fipaterm.mx',
+            'subject' =>'ENVIO DESDE LARAVEL',
+            'recibe' => 'salvador.chavezm@fipaterm.mx'
+        ]);
+        $c=([
+            'envia'=>'ari.villavicencioe@fipaterm.mx',
+            'subject' =>'ENVIO DESDE LARAVEL',
+            'recibe' => 'lancer.gonzaleza@fipaterm.mx'
+        ]);
+
+        $envios=array($a,$b,$c);
+        foreach ($envios as $k => $envio) {
+            Mail::to($envio['recibe'])->send(new EnvioCorreo($envio['envia'],$envio['subject']));
+        }*/
 
         return view('datos.clientes.muestra_cliente',['datos'=>$datos,'antiguedad'=>$antiguedad,'rezago'=>$rezago_asi],compact('fechaAlta'));
     }
@@ -51,9 +68,9 @@ class WsController extends Controller
 
 
     public function ConsultaUsuario($rpu){
-       
-        $wsdl="http://portal.cfemex.com/webservices/wsFideAsi/ServiciosFideAsi.asmx?wsdl";    
-        
+
+        $wsdl="http://portal.cfemex.com/webservices/wsFideAsi/ServiciosFideAsi.asmx?wsdl";
+
         //instanciando un nuevo objeto cliente para consumir el webservice
         $client=new nusoap_client($wsdl,'wsdl');
         $client->soap_defencoding = 'UTF-8';
@@ -64,22 +81,22 @@ class WsController extends Controller
 
         //llamando al metodo y pasandole el array con los parametros
         $resultado = $client->call('ConsultaServicio', $param);
-        if ($client->fault){ 
+        if ($client->fault){
             $error = $client->getError();
-            if ($error) { 
+            if ($error) {
                     //echo 'Error:' . $error;
                     //echo 'Error2:' . $error->faultactor;
                     //echo 'Error3:' . $error->faultdetail;faultstring
                     echo 'Error:  ' . $client->faultstring;
-                }            
+                }
             die();
         }
-        $cadena=$resultado['ConsultaServicioResult']; 
-        print_r($cadena);
-        die();
+        $cadena=$resultado['ConsultaServicioResult'];
+        //print_r($cadena);
+        //die();
         $cadenaDatos=array();
 
-    //return $resultado['ConsultaServicioResult']; 
+    //return $resultado['ConsultaServicioResult'];
     $cadenaDatos["estatus"]=substr($cadena,0,2);
     $cadenaDatos["rpu"]=substr($cadena,2,12);
     $cadenaDatos["numCta"]=substr($cadena,23,16);
@@ -93,14 +110,14 @@ class WsController extends Controller
     $cadenaDatos["fechahasta"]=substr($cadena,146,8);
     $cadenaDatos["fechalimite"]=substr($cadena,154,8);
     $cadenaDatos["numMedidor"]=trim(substr($cadena,473,7));
-    $cadenaDatos["colonia"]=trim(substr($cadena,1252,30));    
+    $cadenaDatos["colonia"]=trim(substr($cadena,1252,30));
     $cadenaDatos["division"]=substr($cadena,25,2);
     $cadenaDatos["zona"]=substr($cadena,27,2);
     $cadenaDatos["agencia"]=substr($cadena,29,1);
-    $cadenaDatos["estatusSRV"]=substr($cadena,20,2);    
+    $cadenaDatos["estatusSRV"]=substr($cadena,20,2);
     $cadenaDatos["empleado"]=substr($cadena,1880,6);
 
-    return  $cadenaDatos; //json_decode(json_encode($cadenaDatos)); 
+    return  $cadenaDatos; //json_decode(json_encode($cadenaDatos));
     }
 
 
@@ -108,12 +125,12 @@ class WsController extends Controller
         $f1=date_create($fecha1);
         $f2=date_create($fecha2);
         $contador=date_diff($f2,$f1);
-        $formato='%y';       
+        $formato='%y';
         return $contador->format($formato);
     }
 
     public function BuscaRezago($rpu){
-        $rezago=Carterapa::where('rpu',$rpu)->first();        
+        $rezago=Carterapa::where('rpu',$rpu)->first();
         return $rezago;
     }
 
@@ -121,5 +138,4 @@ class WsController extends Controller
         $bp=Sicom::where('c4_RPU',$rpu)->orderBy('C4_AA_ADE','desc');
         return $bp;
     }
-
 }

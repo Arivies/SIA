@@ -8,8 +8,9 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Cfe\WsController;
 use App\Http\Controllers\Admin\ActividadController;
 
+
 /*RUTA PRINCIPAL AL DASHBOARD */
-Route::get('', [HomeController::class,'index'])->name('dashboard');
+Route::get('/', [HomeController::class,'index'])->name('dashboard');
 
 /*RUTAS PARA CREAR USUARIOS, ROLES Y PERMISOS*/
 Route::resource('roles', RoleController::class)->names('roles');
